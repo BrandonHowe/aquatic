@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "CommonJS",
+        "lib": [
+            "esnext",
+            "dom"
+        ],
+        "strict": true,
+        "strictNullChecks": false
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+}
