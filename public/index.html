@@ -18,8 +18,8 @@
                 <div>
                     <h2>Header</h2>
                 </div>
-                <comp></comp>
-                <comp></comp>
+                <comp bruh="5"></comp>
+                <comp bruh="6"></comp>
                 <comp></comp>
                 <comp></comp>
             </div>`,
@@ -29,8 +29,11 @@
     });
     aq.component("comp", {
         template: `
-            <p>Component! {{bruh}}</p>
-        `
+            <p>Component! {{ bruh }}</p>
+        `,
+        propArgs: {
+            bruh: String
+        }
     });
     aq.mount("app");
 </script>
