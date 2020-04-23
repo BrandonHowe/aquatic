@@ -19,6 +19,9 @@
                     <h2>Header</h2>
                 </div>
                 <comp></comp>
+                <comp></comp>
+                <comp></comp>
+                <comp></comp>
             </div>`,
         data: {
             myVar: 5
@@ -26,7 +29,7 @@
     });
     aq.component("comp", {
         template: `
-            <p>Component!</p>
+            <p>Component! {{bruh}}</p>
         `
     });
     aq.mount("app");
