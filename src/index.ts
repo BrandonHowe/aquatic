@@ -1,52 +1,62 @@
 const mustacheRegex = /{{.*}}/g;
 
 interface ComponentInterface {
+    name: string,
     template?: string,
     data?: Record<string, any>,
     methods?: Record<string, Function>,
     propArgs?: Record<string, Function>,
-    definedComponents?: Record<string, ComponentInterface>
+    components?: Record<string, Component>
 }
 
 const componentDefaults: ComponentInterface = {
+    name: "",
     template: "",
     data: {},
     methods: {},
     propArgs: {},
-    definedComponents: {}
+    components: {},
 };
 
 class Component {
     private props: Record<string, any> = {};
     private components: Component[][];
 
-    constructor (
-        private name: string,
-        public template: ComponentInterface
-    ) {};
-
-    set setTemplate (template: string) {
-        this.template.template = template;
-    }
+    constructor (public template: ComponentInterface) {
+        this.template.name = this.template.name.toLowerCase();
+        for (const i in template.data) {
+            Object.defineProperty(this, i, {
+                get (): any {
+                    return this.template.data[i];
+                },
+            })
+        }
+    };
 
     public static filterMustache (str: string) {
         return str.substring(2, str.length - 2).trim();
     }
 
     public setProp (prop: string, value: any) {
-        console.log(`Setting ${prop} to ${value}`);
-        console.log(this.template.propArgs[prop]);
         if (this.template.propArgs[prop]) {
+            this.props[prop] = value;
+            if (Object.getOwnPropertyDescriptor(this, prop) && Object.getOwnPropertyDescriptor(this, prop).get) {
+                console.error(`[Aqua warn]: Data value ${prop} is defined section of component ${this.template.name} and will be overwritten by the prop of the same name. Please change the name if you are running into issues.`)
+            }
+            Object.defineProperty(this, prop, {
+                get (): any {
+                    return this.props[prop];
+                },
+            });
             if (value instanceof this.template.propArgs[prop] || this.template.propArgs[prop](value) === value) {
-                this.props[prop] = value;
                 if (!this.template.propArgs[prop]) {
-                    console.error(`[Aqua warn]: The prop ${prop} does not exist on component ${this.name}. If you are passing props in, make sure that they are all defined on the component.`);
+                    console.error(`[Aqua warn]: The prop ${prop} does not exist on component ${this.template.name}. If you are passing props in, make sure that they are all defined on the component.`);
                 }
             } else {
-                console.error(`[Aqua warn]: Prop ${prop} expects a type of ${this.template.propArgs[prop]} but instead received a value of type ${Array.isArray(value) ? "Array" : typeof value}.`);
+                console.error(`[Aqua warn]: Prop ${prop} in component ${this.template.name} expects a type of ${this.template.propArgs[prop].name} but instead received a value of type ${Array.isArray(value) ? "Array" : typeof value}.`);
             }
         } else {
-            console.error(`Component ${this.name} does not have property ${prop}, but it was passed in anyways. Make sure you define it in the props section of your component.`)
+            console.error(`[Aqua warn]: Component ${this.template.name} does not have property ${prop}, but it was passed in anyways. Make sure you define it in the props section of your component.`)
         }
     }
 
@@ -58,37 +68,34 @@ class Component {
         const nodeIterator = document.createNodeIterator(
             temp,
             NodeFilter.SHOW_ALL,
-            { acceptNode: function(node: any) {
-                    if ( ! /^\s*$/.test(node.data) ) {
+            {
+                acceptNode: function (node: any) {
+                    if (!/^\s*$/.test(node.data)) {
                         return NodeFilter.FILTER_ACCEPT
                     }
-                }
-            }
+                },
+            },
         );
 
-        let currentComponent = 0;
         let node: any;
 
         while ((node = nodeIterator.nextNode())) {
             if (node.nodeType === 3) {
                 node.data = node.data.replace(mustacheRegex, (match: string): string => {
                     const replaced = Component.filterMustache(match);
-                    if (this.template.data[replaced]) {
-                        return this.template.data[replaced];
-                    } else if (this.props[replaced]) {
-                        return this.props[replaced];
-                    } else {
-                        console.error(`[Aqua warn]: Variable ${replaced} is referenced during render, but is not initialized on component. Make sure that you have declared this variable in the data or props section of your component.`);
-                        return undefined;
-                    }
+                    return eval(replaced);
                 });
             } else {
-                console.log(this.components);
-                for (const attribute of node.attributes) {
-                    this.components[currentComponent][0].setProp(attribute.nodeName, attribute.nodeValue);
-                }
-                if (this.components[currentComponent]) {
-                    node.outerHTML = this.components[currentComponent][0].renderElement.outerHTML;
+                if (Object.keys(this.template.components).includes(node.tagName.toLowerCase())) {
+                    // @ts-ignore
+                    const newComponent = [new this.template.components[node.tagName.toLowerCase()]()];
+                    for (const attribute of node.attributes) {
+                        const evaluated = attribute.nodeName.charAt(0) === "$";
+                        const name = evaluated ? attribute.nodeName.slice(1) : attribute.nodeName;
+                        const value = evaluated ? eval(attribute.nodeValue) : attribute.nodeValue;
+                        newComponent[0].setProp(name, value);
+                    }
+                    node.outerHTML = newComponent[0].renderElement.outerHTML;
                 }
             }
         }
@@ -98,15 +105,16 @@ class Component {
 
 class Aquatic extends Component {
     constructor (template: ComponentInterface) {
-        super("app", {...componentDefaults, ...template});
+        super({...{name: "app"}, ...componentDefaults, ...template});
     }
 
-    public static component (name: string, template: ComponentInterface) {
+    public static component (template: ComponentInterface) {
         class newClass extends Component {
             constructor () {
-                super(name, {...componentDefaults, ...template});
+                super({...componentDefaults, ...template});
             }
         }
+
         return newClass;
     }
 

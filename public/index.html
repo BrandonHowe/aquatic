@@ -11,9 +11,10 @@
 
 <script src="../src/index.js"></script>
 <script>
-    const comp = Aquatic.component("comp", {
+    const comp = Aquatic.component({
+        name: "comp",
         template: `
-            <p>Component! {{ bruh }}</p>
+            <p>Component! {{ this.bruh }}</p>
         `,
         propArgs: {
             bruh: String
@@ -22,17 +23,17 @@
     const aq = new Aquatic({
         template: `
             <div>
-                <p>My variable: {{ myVar }}</p>
+                <p>My variable: {{ this.myVar + 1 }}</p>
                 <div>
                     <h2>Header</h2>
                 </div>
                 <comp bruh="5"></comp>
                 <comp bruh="6"></comp>
-                <comp></comp>
-                <comp></comp>
+                <comp $bruh="1 + 3"></comp>
+                <comp $bruh="this.myVar"></comp>
             </div>`,
         data: {
-            myVar: 5
+            myVar: "21"
         },
         components: {
             comp
