@@ -5,7 +5,7 @@ const componentDefaults = {
     data: {},
     methods: {},
     propArgs: {},
-    components: {}
+    definedComponents: {}
 };
 class Component {
     constructor(name, template) {
@@ -49,6 +49,7 @@ class Component {
                 }
             }
         });
+        let currentComponent = 0;
         let node;
         while ((node = nodeIterator.nextNode())) {
             if (node.nodeType === 3) {
@@ -67,13 +68,12 @@ class Component {
                 });
             }
             else {
-                const tag = node.tagName;
-                console.log(this.template.components);
+                console.log(this.components);
                 for (const attribute of node.attributes) {
-                    this.template.components[tag.toLowerCase()].setProp(attribute.nodeName, attribute.nodeValue);
+                    this.components[currentComponent][0].setProp(attribute.nodeName, attribute.nodeValue);
                 }
-                if (this.template.components[tag.toLowerCase()]) {
-                    node.outerHTML = this.template.components[tag.toLowerCase()].renderElement.outerHTML;
+                if (this.components[currentComponent]) {
+                    node.outerHTML = this.components[currentComponent][0].renderElement.outerHTML;
                 }
             }
         }
@@ -84,8 +84,13 @@ class Aquatic extends Component {
     constructor(template) {
         super("app", { ...componentDefaults, ...template });
     }
-    component(name, template) {
-        this.template.components[name] = new Component(name, { ...componentDefaults, ...template });
+    static component(name, template) {
+        class newClass extends Component {
+            constructor() {
+                super(name, { ...componentDefaults, ...template });
+            }
+        }
+        return newClass;
     }
     mount(id) {
         const html = this.renderElement;

@@ -5,7 +5,7 @@ interface ComponentInterface {
     data?: Record<string, any>,
     methods?: Record<string, Function>,
     propArgs?: Record<string, Function>,
-    components?: Record<string, Component>
+    definedComponents?: Record<string, ComponentInterface>
 }
 
 const componentDefaults: ComponentInterface = {
@@ -13,11 +13,12 @@ const componentDefaults: ComponentInterface = {
     data: {},
     methods: {},
     propArgs: {},
-    components: {}
+    definedComponents: {}
 };
 
 class Component {
     private props: Record<string, any> = {};
+    private components: Component[][];
 
     constructor (
         private name: string,
@@ -65,6 +66,7 @@ class Component {
             }
         );
 
+        let currentComponent = 0;
         let node: any;
 
         while ((node = nodeIterator.nextNode())) {
@@ -81,13 +83,12 @@ class Component {
                     }
                 });
             } else {
-                const tag = node.tagName;
-                console.log(this.template.components);
+                console.log(this.components);
                 for (const attribute of node.attributes) {
-                    this.template.components[tag.toLowerCase()].setProp(attribute.nodeName, attribute.nodeValue);
+                    this.components[currentComponent][0].setProp(attribute.nodeName, attribute.nodeValue);
                 }
-                if (this.template.components[tag.toLowerCase()]) {
-                    node.outerHTML = this.template.components[tag.toLowerCase()].renderElement.outerHTML;
+                if (this.components[currentComponent]) {
+                    node.outerHTML = this.components[currentComponent][0].renderElement.outerHTML;
                 }
             }
         }
@@ -100,8 +101,13 @@ class Aquatic extends Component {
         super("app", {...componentDefaults, ...template});
     }
 
-    public component (name: string, template: ComponentInterface) {
-        this.template.components[name] = new Component(name, {...componentDefaults, ...template});
+    public static component (name: string, template: ComponentInterface) {
+        class newClass extends Component {
+            constructor () {
+                super(name, {...componentDefaults, ...template});
+            }
+        }
+        return newClass;
     }
 
     public mount (id: string) {
