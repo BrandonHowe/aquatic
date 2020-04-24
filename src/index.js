@@ -12,14 +12,25 @@ class Component {
     constructor(template) {
         this.template = template;
         this.props = {};
+        this.hidden = false;
         this.template.name = this.template.name.toLowerCase();
-        for (const i in template.data) {
+        for (const i in template.methods) {
             Object.defineProperty(this, i, {
-                get() {
-                    return this.template.data[i];
-                },
+                value: this.template.methods[i],
             });
         }
+        for (const i in template.data) {
+            if (Object.getOwnPropertyDescriptor(this, i)) {
+                console.error(`[Aqua warn]: Method ${i} is defined in component ${this.template.name} and will be overwritten by the data value of the same name. Please change the name if you are running into issues.`);
+            }
+            Object.defineProperty(this, i, {
+                value: this.template.data[i],
+                writable: true
+            });
+        }
+    }
+    set setMount(val) {
+        this.mountComponent = val;
     }
     ;
     static filterMustache(str) {
@@ -28,13 +39,11 @@ class Component {
     setProp(prop, value) {
         if (this.template.propArgs[prop]) {
             this.props[prop] = value;
-            if (Object.getOwnPropertyDescriptor(this, prop) && Object.getOwnPropertyDescriptor(this, prop).get) {
-                console.error(`[Aqua warn]: Data value ${prop} is defined section of component ${this.template.name} and will be overwritten by the prop of the same name. Please change the name if you are running into issues.`);
+            if (Object.getOwnPropertyDescriptor(this, prop)) {
+                console.error(`[Aqua warn]: Data or method value ${prop} is defined in component ${this.template.name} and will be overwritten by the prop of the same name. Please change the name if you are running into issues.`);
             }
             Object.defineProperty(this, prop, {
-                get() {
-                    return this.props[prop];
-                },
+                value: this.props[prop]
             });
             if (value instanceof this.template.propArgs[prop] || this.template.propArgs[prop](value) === value) {
                 if (!this.template.propArgs[prop]) {
@@ -77,18 +86,45 @@ class Component {
                         const evaluated = attribute.nodeName.charAt(0) === "$";
                         const name = evaluated ? attribute.nodeName.slice(1) : attribute.nodeName;
                         const value = evaluated ? eval(attribute.nodeValue) : attribute.nodeValue;
-                        newComponent[0].setProp(name, value);
+                        switch (name) {
+                            case "a-if":
+                                console.log(`${this.template.name} Hidden: ${!value}`);
+                                newComponent[0].hidden = !value;
+                                break;
+                            default:
+                                newComponent[0].setProp(name, value);
+                                break;
+                        }
                     }
-                    node.outerHTML = newComponent[0].renderElement.outerHTML;
+                    console.log(newComponent[0].renderElement);
+                    console.log(temp);
+                    if (newComponent[0].renderElement) {
+                        console.log("true");
+                        node.outerHTML = newComponent[0].renderElement.outerHTML;
+                    }
+                    else {
+                        node.outerHTML = "";
+                    }
                 }
             }
         }
-        return temp;
+        console.log(`${this.template.name}|${this.hidden}`);
+        console.log(temp);
+        if (this.hidden) {
+            return undefined;
+        }
+        else {
+            return temp;
+        }
     }
 }
 class Aquatic extends Component {
     constructor(template) {
         super({ ...{ name: "app" }, ...componentDefaults, ...template });
+        for (const i in template.components) {
+            const component = template.components[i];
+            component.setMount = this;
+        }
     }
     static component(template) {
         class newClass extends Component {
@@ -100,6 +136,9 @@ class Aquatic extends Component {
     }
     mount(id) {
         const html = this.renderElement;
-        document.getElementById(id).appendChild(html);
+        console.log(html);
+        if (html) {
+            document.getElementById(id).appendChild(html);
+        }
     }
 }
