@@ -8,6 +8,9 @@
         "strict": true,
         "strictNullChecks": false
     },
-    "include": ["src/**/*"],
+    "include": [
+        "aquatic/**/*",
+        "examples/src/**/*"
+    ],
     "exclude": ["node_modules"]
 }

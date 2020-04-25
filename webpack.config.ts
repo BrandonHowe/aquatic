@@ -1,18 +1,21 @@
 import * as path from 'path';
 
 module.exports = {
-    entry: './src/aquatic.ts',
+    entry: './examples/src/main.ts',
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
                 use: [{
-                    loader: 'ts-loader',
-                    options: {
-                        appendTsSuffixTo: [/\.vue$/],
-                    }
+                    loader: 'ts-loader'
                 }],
-                exclude: /node_modules/,
+                exclude: [
+                    /node_modules/
+                ],
+            },
+            {
+                test: /\.html$/i,
+                loader: 'html-loader',
             }
         ]
     },
