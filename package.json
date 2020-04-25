@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "ts-loader": "^7.0.1",
+    "typescript": "^3.8.3"
   },
   "dependencies": {}
 }
