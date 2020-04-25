@@ -3,20 +3,16 @@ import { Component, componentDefaults, ComponentInterface } from "./component";
 export class Aquatic extends Component {
     constructor (template: ComponentInterface) {
         super({...{name: "app"}, ...componentDefaults, ...template});
-        for (const i in template.components) {
-            const component = template.components[i];
-            component.setMount = this;
-        }
     }
 
     public static component (template: ComponentInterface) {
-        class newClass extends Component {
+        class ComponentExtension extends Component {
             constructor () {
-                super({...componentDefaults, ...template});
+                super(template);
             }
         }
 
-        return newClass;
+        return ComponentExtension;
     }
 
     public mount (id: string) {

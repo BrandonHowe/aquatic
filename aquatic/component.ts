@@ -1,5 +1,4 @@
-import { Aquatic } from "./index";
-import { mustacheRegex } from "./helpers";
+import { mustacheRegex, objToCSS } from "./helpers";
 
 interface ComponentInterface {
     name: string,
@@ -7,7 +6,7 @@ interface ComponentInterface {
     data?: Record<string, any>,
     methods?: Record<string, Function>,
     propArgs?: Record<string, Function>,
-    components?: Record<string, Component>
+    components?: Record<string, {new (): Component}>
 }
 
 const componentDefaults: ComponentInterface = {
@@ -21,16 +20,13 @@ const componentDefaults: ComponentInterface = {
 
 class Component {
     private props: Record<string, any> = {};
-    private components: Component[][];
-    private mountComponent: Aquatic;
+    private components: Component[][] = [];
+    public style: Record<string, any> = {};
 
     public hidden = false;
 
-    set setMount (val: Aquatic) {
-        this.mountComponent = val;
-    }
-
     constructor (public template: ComponentInterface) {
+        this.template = {...componentDefaults, ...template};
         this.template.name = this.template.name.toLowerCase();
         for (const i in template.methods) {
             Object.defineProperty(this, i, {
@@ -101,14 +97,36 @@ class Component {
             } else {
                 if (Object.keys(this.template.components).includes(node.tagName.toLowerCase())) {
                     // @ts-ignore
-                    const newComponent = [new this.template.components[node.tagName.toLowerCase()]()];
+                    const newComponent: Component[] = [new this.template.components[node.tagName.toLowerCase()]()];
                     for (const attribute of node.attributes) {
                         const evaluated = attribute.nodeName.charAt(0) === "$";
                         const name = evaluated ? attribute.nodeName.slice(1) : attribute.nodeName;
-                        const value = evaluated ? eval(attribute.nodeValue) : attribute.nodeValue;
+                        const value = evaluated ? new Function(`return ${attribute.nodeValue}`).bind(this)() : attribute.nodeValue;
                         switch (name) {
                             case "a-if":
                                 newComponent[0].hidden = !value;
+                                break;
+                            case "a-class":
+                                if (evaluated) {
+                                    for (const i in value) {
+                                        if (value[i]) {
+                                            node.classList.add(value[i]);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "a-style":
+                                if (evaluated) {
+                                    for (const i in value) {
+                                        if (value[i]) {
+                                            this.style[i] = value[i];
+                                        }
+                                    }
+                                } else {
+                                    console.error(`[Aqua warn]: a-style property must have a binding but was passed in as a raw on component ${newComponent[0].template.name}. Make sure to bind $a-style.`)
+                                }
+                                break;
+                            case "style":
                                 break;
                             default:
                                 newComponent[0].setProp(name, value);
@@ -116,10 +134,13 @@ class Component {
                         }
                     }
                     if (newComponent[0].renderElement) {
-                        node.outerHTML = newComponent[0].renderElement.outerHTML;
+                        const renderedElement = newComponent[0].renderElement;
+                        renderedElement.setAttribute("style", objToCSS(this.style));
+                        node.outerHTML = renderedElement.outerHTML;
                     } else {
                         node.outerHTML = "";
                     }
+                    this.components.push(newComponent);
                 }
             }
         }
