@@ -1,7 +1,7 @@
-const path = require('path');
+import * as path from 'path';
 
 module.exports = {
-    entry: './src/index.ts',
+    entry: './src/aquatic.ts',
     module: {
         rules: [
             {
@@ -20,5 +20,6 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         filename: 'bundle.js',
     },
-    mode: "development"
+    mode: "development",
+    watch: true
 };
