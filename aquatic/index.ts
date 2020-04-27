@@ -10,9 +10,6 @@ export class Aquatic extends Component {
             constructor () {
                 super(template, realComponent);
             }
-            public static setMountLoc (loc: string) {
-                
-            }
         }
 
         return ComponentExtension;

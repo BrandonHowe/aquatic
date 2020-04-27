@@ -30,7 +30,6 @@ class Component {
     public style: Record<string, any> = {};
     public attributes: Record<string, string> = {};
     public forObj: Record<any, any> | Array<any>;
-    public mountLocation: Aquatic;
 
     public hidden = false;
 
