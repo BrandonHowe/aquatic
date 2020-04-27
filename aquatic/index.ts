@@ -5,10 +5,10 @@ export class Aquatic extends Component {
         super({...{name: "app"}, ...componentDefaults, ...template});
     }
 
-    public static component (template: ComponentInterface) {
+    public static component (template: ComponentInterface, realComponent = true) {
         class ComponentExtension extends Component {
             constructor () {
-                super(template);
+                super(template, realComponent);
             }
         }
 
@@ -18,7 +18,7 @@ export class Aquatic extends Component {
     public mount (id: string) {
         const html = this.renderElement;
         if (html) {
-            document.getElementById(id).appendChild(html);
+            document.getElementById(id).innerHTML += (html);
         }
     }
 }

@@ -7,7 +7,8 @@ const aq = new Aquatic({
     name: "app",
     template: html,
     data: {
-        myVar: "22"
+        myVar: "22",
+        vars: [1, 4, 8]
     },
     methods: {
         calculate (): any {

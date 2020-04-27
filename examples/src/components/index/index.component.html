@@ -1,9 +1,6 @@
-<div>
-    <p>My variable: {{ this.myVar + 1 }}</p>
-    <div>
-        <h2>Header</h2>
-    </div>
-    <comp $a-if="this.myVar == 22" bruh="5"></comp>
-    <comp $bruh="this.calculate() + 9"></comp>
-    <comp $a-style="{color: this.myVar == 21 ? 'red' : 'yellow'}" $bruh="this.myVar"></comp>
+<p>My variable: {{ this.myVar + 1 }}</p>
+<div $title="'myVar is ' + this.myVar" style="color: red">
+    <h2>{{this.vars}}</h2>
 </div>
+<comp $bruh="5"></comp>
+<comp a-for="num in this.vars" $bruh="this.num"></comp>
