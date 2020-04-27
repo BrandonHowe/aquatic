@@ -149,7 +149,7 @@ class Component {
                                 return Object.values(forObj)[index]
                             },
                             set (newValue) {
-                                console.error(`[Aqua warn]: Do not change props.`);
+                                console.error(`[Aqua warn]: Do not change props. If you need to, make a data property and set the data property to the prop value, and change that property.`);
                                 this[forTarg] = newValue;
                             },
                             configurable: true
