@@ -200,6 +200,9 @@ class Component {
                                 if (name !== "a-for") {
                                     if (elementSupportsAttribute(firstElementName(currentComponent.template.template), name)) {
                                         node.setAttribute(name, value);
+                                        if (evaluated) {
+                                            node.removeAttribute(`$${name}`);
+                                        }
                                     } else {
                                         currentComponent.setProp(name, value);
                                     }
@@ -211,14 +214,12 @@ class Component {
                 for (const [index, component] of newComponent.entries()) {
                     if (isCustomComponent) {
                         const renderedElement = component.renderElement;
-                        console.log(`Rendering ${component.template.name} as ${renderedElement}`);
                         if (renderedElement) {
                             const styleObj = objToCSS(this.style);
                             if (styleObj) {
                                 node.setAttribute("style", styleObj);
                             }
                             node.innerHTML += renderedElement;
-                            console.log(`Adding, current str: ${node.outerHTML}`)
                         }
                         this.components.push(newComponent);
                     }
@@ -228,7 +229,6 @@ class Component {
                 }
             }
         }
-        console.log("Returning", temp.innerHTML);
         if (this.hidden || !this.realComponent) {
             return undefined;
         } else {
