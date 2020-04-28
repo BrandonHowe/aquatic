@@ -7,7 +7,7 @@ import comp from "../comp/comp.component";
 const aq = new Aquatic({
     name: "app",
     template: html,
-    style: css,
+    style: [css],
     data: {
         myVar: "22",
         vars: [1, 4, 8]

@@ -6,7 +6,7 @@ import css from "./comp.component.css";
 const comp = Aquatic.component({
     name: "comp",
     template: html,
-    style: css,
+    style: [css],
     propArgs: {
         bruh: String
     }
