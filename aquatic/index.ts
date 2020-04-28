@@ -1,4 +1,5 @@
 import { Component, componentDefaults, ComponentInterface } from "./component";
+import { collapseNodeStyles } from "./helpers";
 
 export class Aquatic extends Component {
     constructor (template: ComponentInterface) {
@@ -17,8 +18,9 @@ export class Aquatic extends Component {
 
     public mount (id: string) {
         const html = this.renderElement;
+        const [newHTML, style] = collapseNodeStyles(html);
         if (html) {
-            document.getElementById(id).innerHTML += (html);
+            document.getElementById(id).innerHTML += newHTML + style;
         }
     }
 }
