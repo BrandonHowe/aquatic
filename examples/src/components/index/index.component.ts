@@ -15,6 +15,9 @@ const aq = new Aquatic({
     methods: {
         calculate (): any {
             return this.myVar;
+        },
+        alertStuff (word: string): void {
+            alert(word);
         }
     },
     components: {

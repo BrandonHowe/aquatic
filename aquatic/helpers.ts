@@ -39,17 +39,21 @@ const removeStyleTags = (str: string) => {
     return splitStr[2];
 };
 
-const collapseNodeStyles = (nodes: string) => {
+const collapseNodeStyles = (node: Element) => {
     const styleStrings: string[] = [];
 
-    const newNodes = nodes.replace(styleRegex, (match) => {
-        if (styleStrings.indexOf(removeStyleTags(match))) {
-            styleStrings.push(removeStyleTags(match));
-        }
-        return "";
-    });
+    const childNodes = node.childNodes;
 
-    return [newNodes, `<style>${styleStrings.reduce((acc, cur) => acc + cur, "")}</style>`];
+    if (childNodes.length > 0) {
+        for (let i in childNodes) {
+            console.log(childNodes);
+            if (childNodes[i].nodeName.toLowerCase() === "style") {
+                delete childNodes[i];
+            }
+        }
+    }
+
+    return node;
 };
 
 export { mustacheRegex, objToCSS, elementSupportsAttribute, firstElementName, insertAttributesIntoHTML, collapseNodeStyles };

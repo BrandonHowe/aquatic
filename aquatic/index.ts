@@ -2,6 +2,8 @@ import { Component, componentDefaults, ComponentInterface } from "./component";
 import { collapseNodeStyles } from "./helpers";
 
 export class Aquatic extends Component {
+    private pastMountLocation: string;
+
     constructor (template: ComponentInterface) {
         super({...{name: "app"}, ...componentDefaults, ...template});
     }
@@ -16,11 +18,11 @@ export class Aquatic extends Component {
         return ComponentExtension;
     }
 
-    public mount (id: string) {
+    public mount (id: string = this.pastMountLocation) {
         const html = this.renderElement;
-        const [newHTML, style] = collapseNodeStyles(html);
+        // const [newHTML, style] = collapseNodeStyles(html);
         if (html) {
-            document.getElementById(id).innerHTML += newHTML + style;
+            document.getElementById(id).appendChild(html);
         }
     }
 }

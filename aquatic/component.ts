@@ -32,6 +32,16 @@ class Component {
     public style: Record<string, any> = {};
     public attributes: Record<string, string> = {};
     public forObj: Record<any, any> | Array<any>;
+    private mountLocation: Aquatic;
+
+    public set setMountLocation (val: Aquatic) {
+        this.mountLocation = val;
+        for (const component of this.components) {
+            for (const deepComponent of component) {
+                deepComponent.setMountLocation = val;
+            }
+        }
+    }
 
     public hidden = false;
 
@@ -51,8 +61,15 @@ class Component {
                 console.error(`[Aqua warn]: Method ${i} is defined in component ${this.template.name} and will be overwritten by the data value of the same name. Please change the name if you are running into issues.`)
             }
             Object.defineProperty(this, i, {
-                value: this.template.data[i],
-                writable: true,
+                get () {
+                    return this.template.data[i];
+                },
+                set (val) {
+                    this.template.data[i] = val;
+                    if (this.mountLocation) {
+                        this.mountLocation.mount();
+                    }
+                }
             })
         }
     };
@@ -93,7 +110,7 @@ class Component {
         }
     }
 
-    get renderElement (): string {
+    get renderElement () {
         if (!this.realComponent) {
             return null;
         }
@@ -201,6 +218,9 @@ class Component {
                                     node.style = value;
                                 }
                                 break;
+                            case "click":
+                                node.addEventListener("click", function(){alert("bruh")})
+                                break;
                             default:
                                 if (name !== "a-for") {
                                     if (elementSupportsAttribute(firstElementName(currentComponent.template.template), name)) {
@@ -224,7 +244,11 @@ class Component {
                             if (styleObj) {
                                 node.setAttribute("style", styleObj);
                             }
-                            node.innerHTML += renderedElement;
+                            for (const i in renderedElement.childNodes) {
+                                if (renderedElement.childNodes[i] && renderedElement.childNodes[i].nodeName !== undefined) {
+                                    node.append(renderedElement.childNodes[i])
+                                }
+                            }
                         }
                         this.components.push(newComponent);
                     }
@@ -237,7 +261,7 @@ class Component {
         if (this.hidden || !this.realComponent) {
             return undefined;
         } else {
-            return temp.innerHTML;
+            return temp;
         }
     }
 }
