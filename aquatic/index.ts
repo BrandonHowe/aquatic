@@ -20,9 +20,10 @@ export class Aquatic extends Component {
 
     public mount (id: string = this.pastMountLocation) {
         const html = this.renderElement;
-        // const [newHTML, style] = collapseNodeStyles(html);
+        const [newNode, style] = collapseNodeStyles(html);
         if (html) {
-            document.getElementById(id).appendChild(html);
+            document.getElementById(id).appendChild(newNode);
+            document.getElementById(id).appendChild(style);
         }
     }
 }

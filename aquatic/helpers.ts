@@ -40,20 +40,26 @@ const removeStyleTags = (str: string) => {
 };
 
 const collapseNodeStyles = (node: Element) => {
-    const styleStrings: string[] = [];
+    const styleStrings = document.createElement("style");
+    const removeArr = [];
 
-    const childNodes = node.childNodes;
+    const childNodes = node.children;
 
     if (childNodes.length > 0) {
-        for (let i in childNodes) {
-            console.log(childNodes);
-            if (childNodes[i].nodeName.toLowerCase() === "style") {
-                delete childNodes[i];
+        for (const i in childNodes) {
+            if (childNodes[i] && childNodes[i].nodeName !== undefined && childNodes[i].nodeName.toLowerCase() === "style") {
+                // @ts-ignore
+                styleStrings.innerHTML += childNodes[i].innerHTML;
+                removeArr.push(childNodes[i]);
             }
         }
     }
 
-    return node;
+    for (const thing of removeArr) {
+        node.removeChild(thing);
+    }
+
+    return [node, styleStrings];
 };
 
 export { mustacheRegex, objToCSS, elementSupportsAttribute, firstElementName, insertAttributesIntoHTML, collapseNodeStyles };
