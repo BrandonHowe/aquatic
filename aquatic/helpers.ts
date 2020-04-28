@@ -1,4 +1,5 @@
 const mustacheRegex = /{{.*}}/g;
+const styleRegex = /<style>(.|\n)*?<\/style>/g;
 
 const objToCSS = (obj: Record<string, any>) => {
     let str = "";
@@ -33,4 +34,24 @@ const insertAttributesIntoHTML = (html: string, attributes: Record<string, strin
     return splitHTML.join(">");
 };
 
-export { mustacheRegex, objToCSS, elementSupportsAttribute, firstElementName, insertAttributesIntoHTML };
+const removeStyleTags = (str: string) => {
+    const splitStr = str.split(">").map(l => l.split("<")).flat();
+    return splitStr[2];
+};
+
+const collapseNodeStyles = (nodes: string) => {
+    const styleStrings: string[] = [];
+
+    console.log("Nodes:", nodes.match(styleRegex));
+
+    const newNodes = nodes.replace(styleRegex, (match) => {
+        if (styleStrings.indexOf(removeStyleTags(match))) {
+            styleStrings.push(removeStyleTags(match));
+        }
+        return "";
+    });
+
+    return [newNodes, `<style>${styleStrings.reduce((acc, cur) => acc + cur, "")}</style>`];
+};
+
+export { mustacheRegex, objToCSS, elementSupportsAttribute, firstElementName, insertAttributesIntoHTML, collapseNodeStyles };

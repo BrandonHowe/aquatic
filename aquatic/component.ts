@@ -9,6 +9,7 @@ import { Aquatic } from "./index";
 interface ComponentInterface {
     name: string,
     template?: string,
+    style?: string,
     data?: Record<string, any>,
     methods?: Record<string, Function>,
     propArgs?: Record<string, Function>,
@@ -18,6 +19,7 @@ interface ComponentInterface {
 const componentDefaults: ComponentInterface = {
     name: "",
     template: "",
+    style: "",
     data: {},
     methods: {},
     propArgs: {},
@@ -34,6 +36,8 @@ class Component {
     public hidden = false;
 
     constructor (public template: ComponentInterface, private realComponent = true) {
+        // console.log("Style", template.style);
+        // template.template += `<style>${template.style}</style>`;
         this.template = {...componentDefaults, ...template};
         this.template.name = this.template.name.toLowerCase();
         for (const i in template.methods) {
