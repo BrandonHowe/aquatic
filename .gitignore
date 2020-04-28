@@ -2,5 +2,6 @@
 node_modules
 
 examples/**/*.js
+aquatic/**/*.js
 
 dist/
