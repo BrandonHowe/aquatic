@@ -42,8 +42,6 @@ const removeStyleTags = (str: string) => {
 const collapseNodeStyles = (nodes: string) => {
     const styleStrings: string[] = [];
 
-    console.log("Nodes:", nodes.match(styleRegex));
-
     const newNodes = nodes.replace(styleRegex, (match) => {
         if (styleStrings.indexOf(removeStyleTags(match))) {
             styleStrings.push(removeStyleTags(match));

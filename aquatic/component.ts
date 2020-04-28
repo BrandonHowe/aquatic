@@ -36,8 +36,7 @@ class Component {
     public hidden = false;
 
     constructor (public template: ComponentInterface, private realComponent = true) {
-        // console.log("Style", template.style);
-        // template.template += `<style>${template.style}</style>`;
+        template.template += `<style>${template.style}</style>`;
         this.template = {...componentDefaults, ...template};
         this.template.name = this.template.name.toLowerCase();
         for (const i in template.methods) {
