@@ -28,11 +28,11 @@ const componentDefaults: ComponentInterface = {
 
 class Component {
     private props: Record<string, any> = {};
-    private components: Component[][] = [];
+    protected components: Component[][] = [];
     public style: Record<string, any> = {};
     public attributes: Record<string, string> = {};
     public forObj: Record<any, any> | Array<any>;
-    private mountLocation: Aquatic;
+    protected mountLocation: Aquatic;
 
     public set setMountLocation (val: Aquatic) {
         this.mountLocation = val;
@@ -41,6 +41,11 @@ class Component {
                 deepComponent.setMountLocation = val;
             }
         }
+    }
+
+    private $emit (name: string, message: any) {
+        const event = new CustomEvent(name, {detail: message});
+        document.dispatchEvent(event);
     }
 
     public hidden = false;
@@ -60,17 +65,36 @@ class Component {
             if (Object.getOwnPropertyDescriptor(this, i)) {
                 console.error(`[Aqua warn]: Method ${i} is defined in component ${this.template.name} and will be overwritten by the data value of the same name. Please change the name if you are running into issues.`)
             }
-            Object.defineProperty(this, i, {
-                get () {
-                    return this.template.data[i];
-                },
-                set (val) {
-                    this.template.data[i] = val;
-                    if (this.mountLocation) {
-                        this.mountLocation.mount();
+            // if (typeof this.template.data[i] !== "object") {
+                Object.defineProperty(this, i, {
+                    get () {
+                        return this.template.data[i];
+                    },
+                    set (val) {
+                        this.template.data[i] = val;
+                        if (this.mountLocation) {
+                            this.mountLocation.mount();
+                        }
                     }
-                }
-            })
+                })
+            // } else {
+            //     const self = this;
+            //     Object.defineProperty(this, i, {
+            //         value: new Proxy(this.template.data[i], {
+            //             get: function(target, property) {
+            //                 // property is index in this case
+            //                 return target[property];
+            //             },
+            //             set: function(target, property, value, receiver) {
+            //                 target[property] = value;
+            //                 self.mountLocation.mount();
+            //                 // you have to return true to accept the changes
+            //                 return true;
+            //             }
+            //         }),
+            //         writable: true
+            //     })
+            // }
         }
     };
 
@@ -152,7 +176,7 @@ class Component {
                 let forTarg: string;
                 if (hasAFor) {
                     const attribute = node.getAttribute("a-for");
-                    const splitVal = attribute.split("in").map((l: string) => l.trim());
+                    const splitVal = attribute.split(" in ").map((l: string) => l.trim());
                     if (splitVal.length === 2) {
                         forTarg = splitVal[0];
                         forObj = new Function(`return ${splitVal[1]}`).bind(this)();
@@ -177,62 +201,75 @@ class Component {
                             configurable: true
                         });
                     }
+                    const attributeReplacements: Record<string, string> = {};
                     for (const attribute of node.attributes) {
                         const evaluated = attribute.nodeName.charAt(0) === "$";
-                        const name = evaluated ? attribute.nodeName.slice(1) : attribute.nodeName;
-                        const value = evaluated ? new Function(`return ${attribute.nodeValue}`).bind(this)() : attribute.nodeValue;
-                        switch (name) {
-                            case "a-if":
-                                currentComponent.hidden = !value;
-                                break;
-                            case "class":
-                                if (evaluated) {
-                                    if (Array.isArray(value)) {
-                                        for (const classVal of value) {
-                                            node.clasList.add(classVal);
+                        const isListener = attribute.nodeName.charAt(0) === "@";
+                        const name = evaluated || isListener ? attribute.nodeName.slice(1) : attribute.nodeName;
+                        const value = evaluated || isListener ? new Function(`return ${attribute.nodeValue}`).bind(this)() : attribute.nodeValue;
+                        // console.log(`${isListener}|${name}|${value}`)
+                        if (isListener) {
+                            console.log(`Adding event listener ${name}`, value);
+                            document.addEventListener(name, value.bind(this), false);
+                        } else {
+                            switch (name) {
+                                case "a-if":
+                                    currentComponent.hidden = !value;
+                                    break;
+                                case "class":
+                                    if (evaluated) {
+                                        if (Array.isArray(value)) {
+                                            for (const classVal of value) {
+                                                node.clasList.add(classVal);
+                                            }
+                                        } else {
+                                            for (const i in value) {
+                                                if (value[i]) {
+                                                    node.classList.add(value[i]);
+                                                }
+                                            }
                                         }
                                     } else {
-                                        for (const i in value) {
-                                            if (value[i]) {
-                                                node.classList.add(value[i]);
+                                        const splitValue = value.split(" ");
+                                        for (const i in splitValue) {
+                                            if (splitValue[i]) {
+                                                node.classList.add(splitValue[i].trim());
                                             }
                                         }
                                     }
-                                } else {
-                                    const splitValue = value.split(" ");
-                                    for (const i in splitValue) {
-                                        if (splitValue[i]) {
-                                            node.classList.add(splitValue[i].trim());
-                                        }
-                                    }
-                                }
-                                break;
-                            case "style":
-                                if (evaluated) {
-                                    for (const i in value) {
-                                        if (value[i]) {
-                                            this.style[i] = value[i];
-                                        }
-                                    }
-                                } else {
-                                    node.style = value;
-                                }
-                                break;
-                            case "click":
-                                node.addEventListener("click", function(){alert("bruh")})
-                                break;
-                            default:
-                                if (name !== "a-for") {
-                                    if (elementSupportsAttribute(firstElementName(currentComponent.template.template), name)) {
-                                        node.setAttribute(name, value);
-                                        if (evaluated) {
-                                            node.removeAttribute(`$${name}`);
+                                    break;
+                                case "style":
+                                    if (evaluated) {
+                                        for (const i in value) {
+                                            if (value[i]) {
+                                                this.style[i] = value[i];
+                                            }
                                         }
                                     } else {
-                                        currentComponent.setProp(name, value);
+                                        node.style = value;
                                     }
-                                }
-                                break;
+                                    break;
+                                case "a-click":
+                                    node.addEventListener("click", new Function(`return ${value}`).bind(this));
+                                    break;
+                                default:
+                                    if (name !== "a-for") {
+                                        if (elementSupportsAttribute(firstElementName(currentComponent.template.template), name)) {
+                                            attributeReplacements[name] = value;
+                                            attributeReplacements[`$${name}`] = undefined;
+                                        } else {
+                                            currentComponent.setProp(name, value);
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    for (const [key, value] of Object.entries(attributeReplacements)) {
+                        if (value) {
+                            node.setAttribute(key, value);
+                        } else {
+                            node.removeAttribute(key);
                         }
                     }
                 }

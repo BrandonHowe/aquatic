@@ -22,8 +22,16 @@ export class Aquatic extends Component {
         const html = this.renderElement;
         const [newNode, style] = collapseNodeStyles(html);
         if (html) {
+            document.getElementById(id).innerHTML = "";
             document.getElementById(id).appendChild(newNode);
             document.getElementById(id).appendChild(style);
         }
+        this.mountLocation = this;
+        for (const component of this.components) {
+            for (const smallComponent of component) {
+                smallComponent.setMountLocation = this;
+            }
+        }
+        this.pastMountLocation = id;
     }
 }

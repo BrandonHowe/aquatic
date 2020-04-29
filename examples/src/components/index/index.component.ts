@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Aquatic } from "../../../../aquatic/index";
 
 import html from "./index.component.html";
@@ -9,15 +11,12 @@ const aq = new Aquatic({
     template: html,
     style: [css],
     data: {
-        myVar: "22",
-        vars: [1, 4, 8]
+        myVar: "",
+        vars: []
     },
     methods: {
-        calculate (): any {
-            return this.myVar;
-        },
-        alertStuff (word: string): void {
-            alert(word);
+        addTodoItem (val) {
+            this.vars.push(val);
         }
     },
     components: {

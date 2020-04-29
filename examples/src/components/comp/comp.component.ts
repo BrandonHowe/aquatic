@@ -8,7 +8,7 @@ const comp = Aquatic.component({
     template: html,
     style: [css],
     propArgs: {
-        bruh: String
+        bruh: Number
     }
 });
 
