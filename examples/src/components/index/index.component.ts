@@ -11,7 +11,7 @@ const aq = new Aquatic({
     template: html,
     style: [css],
     data: {
-        myVar: "",
+        myVar: "2",
         vars: []
     },
     methods: {

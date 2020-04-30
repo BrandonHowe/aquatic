@@ -1,3 +1,5 @@
+import { Attribute } from "./component";
+
 const mustacheRegex = /{{.*}}/g;
 
 const objToCSS = (obj: Record<string, any>) => {
@@ -12,6 +14,8 @@ const elementSupportsAttribute = (element: string, attribute: string): boolean =
     const test = document.createElement(element);
     return attribute in test;
 };
+
+const filterMustache = (str: string) => str.substring(2, str.length - 2).trim();
 
 const firstElementName = (str: string): string => {
     return str.split(" ").map(l => l.split(">")).flat()[0].slice(1);
@@ -55,4 +59,22 @@ const collapseNodeStyles = (node: Element) => {
     return [node, styleStrings];
 };
 
-export { mustacheRegex, objToCSS, elementSupportsAttribute, firstElementName, insertAttributesIntoHTML, collapseNodeStyles };
+const isElement = (obj: Record<any, any>): obj is Element => {
+    return obj instanceof Element;
+};
+
+const namedNodeMapToArr = (nodes: NamedNodeMap): Attribute[] => {
+    if (nodes.length === 0) {
+        return [];
+    }
+    const result: Attribute[] = [];
+    let cur = 0;
+    let curAttr;
+    while ((curAttr = nodes.item(cur))) {
+        result.push({name: curAttr.nodeName, value: curAttr.nodeValue});
+        cur++;
+    }
+    return result;
+};
+
+export { mustacheRegex, objToCSS, elementSupportsAttribute, filterMustache, insertAttributesIntoHTML, collapseNodeStyles, isElement, namedNodeMapToArr };

@@ -19,18 +19,11 @@ export class Aquatic extends Component {
     }
 
     public mount (id: string = this.pastMountLocation) {
-        const html = this.renderElement;
-        const [newNode, style] = collapseNodeStyles(html);
-        if (html) {
-            document.getElementById(id).innerHTML = "";
-            document.getElementById(id).appendChild(newNode);
-            document.getElementById(id).appendChild(style);
-        }
+        console.log("Display: ", this.turnComponentIntoVNode)
+        document.getElementById(id).append(this.turnComponentIntoVNode.displayDOM);
         this.mountLocation = this;
         for (const component of this.components) {
-            for (const smallComponent of component) {
-                smallComponent.setMountLocation = this;
-            }
+            component.setMountLocation = this;
         }
         this.pastMountLocation = id;
     }
