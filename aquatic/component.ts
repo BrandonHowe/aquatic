@@ -103,12 +103,12 @@ class Component {
             if (attrType === "evaluated") {
                 return {
                     name: attribute.name.slice(1),
-                    value:new Function(`return ${attribute.value}`).bind(this)();
+                    value: new Function(`return ${attribute.value}`).bind(this)()
                 }
             } else {
                 return {
                     name: attribute.name,
-                    value: attribute.value;
+                    value: attribute.value
                 }
             }
         });
@@ -152,6 +152,7 @@ class Component {
         const forIter: string = isAFor ? forArr[0] : "";
         const nodeArr: (VirtualDOMNode | VirtualDOMTextNode)[] = [];
         for (const i in (forObj ? forObj : [])) {
+            // @ts-ignore
             let currentFor = forObj[i];
             if (isAFor) {
                 Object.defineProperty(this, forIter, {
