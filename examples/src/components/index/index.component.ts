@@ -12,7 +12,7 @@ const aq = new Aquatic({
     style: [css],
     data: {
         myVar: "2",
-        vars: []
+        vars: [22, 24]
     },
     methods: {
         addTodoItem (val) {

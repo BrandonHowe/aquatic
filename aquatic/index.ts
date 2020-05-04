@@ -1,5 +1,4 @@
-import { Component, componentDefaults, ComponentInterface } from "./component";
-import { collapseNodeStyles } from "./helpers";
+import { Attribute, Component, componentDefaults, ComponentInterface } from "./component";
 
 export class Aquatic extends Component {
     private pastMountLocation: string;
@@ -8,10 +7,10 @@ export class Aquatic extends Component {
         super({...{name: "app"}, ...componentDefaults, ...template});
     }
 
-    public static component (template: ComponentInterface, realComponent = true) {
+    public static component (template: ComponentInterface) {
         class ComponentExtension extends Component {
-            constructor () {
-                super(template, realComponent);
+            constructor (props: Attribute[] = []) {
+                super(template, props);
             }
         }
 
@@ -19,8 +18,11 @@ export class Aquatic extends Component {
     }
 
     public mount (id: string = this.pastMountLocation) {
-        console.log("Display: ", this.turnComponentIntoVNode)
-        document.getElementById(id).append(this.turnComponentIntoVNode.displayDOM);
+        console.log("Display: ", this.turnComponentIntoVNode());
+        const leDom = this.turnComponentIntoVNode();
+        for (const element of leDom) {
+            document.getElementById(id).append(element.displayDOM);
+        }
         this.mountLocation = this;
         for (const component of this.components) {
             component.setMountLocation = this;

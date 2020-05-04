@@ -2,6 +2,13 @@ import { Attribute } from "./component";
 
 const mustacheRegex = /{{.*}}/g;
 
+const aquaticConstants = [
+    "class",
+    "a-for"
+];
+
+const removeConstantsFromAttrs = (attrs: Attribute[]) => attrs.filter(l => aquaticConstants.indexOf(l.name) === -1);
+
 const objToCSS = (obj: Record<string, any>) => {
     let str = "";
     for (const i in obj) {
@@ -12,14 +19,10 @@ const objToCSS = (obj: Record<string, any>) => {
 
 const elementSupportsAttribute = (element: string, attribute: string): boolean => {
     const test = document.createElement(element);
-    return attribute in test;
+    return (attribute in test || attribute === "class");
 };
 
 const filterMustache = (str: string) => str.substring(2, str.length - 2).trim();
-
-const firstElementName = (str: string): string => {
-    return str.split(" ").map(l => l.split(">")).flat()[0].slice(1);
-};
 
 const attributesToStr = (attributes: Record<string, string>) => {
     let str = "";
@@ -29,12 +32,6 @@ const attributesToStr = (attributes: Record<string, string>) => {
         }
     }
     return str;
-};
-
-const insertAttributesIntoHTML = (html: string, attributes: Record<string, string>) => {
-    let splitHTML = html.split(">");
-    splitHTML[0] += ` ${attributesToStr(attributes)}`;
-    return splitHTML.join(">");
 };
 
 const collapseNodeStyles = (node: Element) => {
@@ -77,4 +74,13 @@ const namedNodeMapToArr = (nodes: NamedNodeMap): Attribute[] => {
     return result;
 };
 
-export { mustacheRegex, objToCSS, elementSupportsAttribute, filterMustache, insertAttributesIntoHTML, collapseNodeStyles, isElement, namedNodeMapToArr };
+const objToAttrs = (obj: Record<string, any>): Attribute[] => {
+    const keys = Object.keys(obj);
+    return Object.values(obj).map((l, idx) => ({name: keys[idx], value: l}));
+};
+
+const hasAFor = (node: Node, props: Attribute[]): node is Element => {
+    return (isElement(node) ? node.hasAttribute("a-for") : false) || props.findIndex(l => l.name === "a-for") > -1
+};
+
+export { mustacheRegex, removeConstantsFromAttrs, objToCSS, elementSupportsAttribute, filterMustache, collapseNodeStyles, isElement, namedNodeMapToArr, hasAFor, objToAttrs };

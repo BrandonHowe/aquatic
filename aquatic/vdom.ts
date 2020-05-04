@@ -23,7 +23,6 @@ class VirtualDOMNode {
 
     get displayDOM (): Element {
         const myElement = document.createElement(this.tagName);
-        console.log(this.attributes);
         for (const attribute of this.attributes) {
             myElement.setAttribute(attribute.name, attribute.value);
         }
@@ -31,7 +30,9 @@ class VirtualDOMNode {
             myElement.addEventListener(i, this.listeners[i]);
         }
         this.children.map(l => {
-            myElement.append(l.displayDOM)
+            if (l) {
+                myElement.append(l.displayDOM)
+            }
         });
         return myElement;
     }

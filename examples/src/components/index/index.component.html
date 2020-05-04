@@ -1,6 +1,6 @@
 <input $value="this.myVar" @input="function(){this.myVar = event.target.value}">
-<button a-click="this.pushIn(this.myVar)">Add</button>
-<div a-click="this.$emit('blah', 'test')" $title="'myVar is ' + this.myVar" style="color: red">
+<button @click="this.addTodoItem(this.myVar)">Add</button>
+<div @click="this.$emit('blah', 'test')" $title="'myVar is ' + this.myVar" style="color: red">
     <h2>My todo list: {{ this.vars.length }} items</h2>
 </div>
-<comp $bruh="this.thing" a-for="thing in this.vars"></comp>
+<comp $bruh="this.xd" a-for="xd in this.vars"></comp>
