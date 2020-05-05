@@ -74,7 +74,24 @@ class Component {
             if (Object.getOwnPropertyDescriptor(this, i)) {
                 console.error(`[Aqua warn]: Method ${i} is defined in component ${this.template.name} and will be overwritten by the data value of the same name. Please change the name if you are running into issues.`)
             }
-            if (typeof this.template.data[i] !== "object") {
+            if (typeof this.template.data[i] === "object") {
+                const self = this;
+                Object.defineProperty(this, i, {
+                    value: new Proxy(this.template.data[i], {
+                        get (target, property) {
+                            console.log(`Returning ${target} ${property.toString()}`);
+                            return target[property];
+                        },
+                        set (target, property, value, receiver) {
+                            target[property] = value;
+                            if (self.mountLocation) {
+                                self.mountLocation.mount();
+                            }
+                            return true;
+                        },
+                    })
+                });
+            } else {
                 Object.defineProperty(this, i, {
                     get () {
                         return this.template.data[i];
@@ -86,13 +103,6 @@ class Component {
                         }
                     },
                 })
-            } else {
-                const self = this;
-                Object.defineProperty(this, i, {
-                    value: this.template.data[i],
-                    writable: true,
-                    configurable: true,
-                })
             }
         }
     };
@@ -103,12 +113,12 @@ class Component {
             if (attrType === "evaluated") {
                 return {
                     name: attribute.name.slice(1),
-                    value: new Function(`return ${attribute.value}`).bind(this)()
+                    value: new Function(`return ${attribute.value}`).bind(this)(),
                 }
             } else {
                 return {
                     name: attribute.name,
-                    value: attribute.value
+                    value: attribute.value,
                 }
             }
         });
@@ -119,7 +129,7 @@ class Component {
         for (let attribute of attributes) {
             const attrType: AttributeType = attribute.name.charAt(0) === "@" ? "listener" : "default";
             if (attrType === "listener") {
-                listeners[attribute.name.slice(1)] = new Function(`return ${attribute.value}`).bind(this);
+                listeners[attribute.name.slice(1)] = new Function(`return ${attribute.value}`).bind(this)();
                 attributes.splice(attributes.indexOf(attribute));
             }
         }
@@ -196,12 +206,12 @@ class Component {
                         }
                     }
                 }
-                nodeArr.push(new VirtualDOMNode(name, attributes, listeners, newChildren, true));
+                nodeArr.push(new VirtualDOMNode(name, attributes, listeners, newChildren, this));
             } else {
                 nodeArr.push(new VirtualDOMTextNode(this.parseText(node.textContent)));
             }
         }
-        return nodeArr
+        return nodeArr;
     }
 
     static nodeToComponent (node: any) {

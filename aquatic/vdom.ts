@@ -1,3 +1,5 @@
+import { Component } from "./component";
+
 class VirtualDOMTextNode {
     constructor (public template: string) {
         if (template === undefined) {
@@ -18,7 +20,7 @@ class VirtualDOMNode {
         public attributes: Record<string, any>[],
         public listeners: Record<string, any>,
         public children: (VirtualDOMNode | VirtualDOMTextNode)[],
-        public custom = false,
+        public component: Component,
     ) {}
 
     get displayDOM (): Element {
@@ -27,7 +29,10 @@ class VirtualDOMNode {
             myElement.setAttribute(attribute.name, attribute.value);
         }
         for (const i in this.listeners) {
-            myElement.addEventListener(i, this.listeners[i]);
+            if (i && this.listeners[i]) {
+                console.log("Setting listener", myElement, i, this.listeners[i]);
+                myElement.addEventListener(i, this.listeners[i].bind(this.component));
+            }
         }
         this.children.map(l => {
             if (l) {
@@ -37,7 +42,5 @@ class VirtualDOMNode {
         return myElement;
     }
 }
-
-const appVDom = new VirtualDOMNode("app", [], {}, []);
 
 export { VirtualDOMNode, VirtualDOMTextNode }

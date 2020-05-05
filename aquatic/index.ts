@@ -1,7 +1,9 @@
 import { Attribute, Component, componentDefaults, ComponentInterface } from "./component";
+import { updateDOM } from "./diff";
 
 export class Aquatic extends Component {
     private pastMountLocation: string;
+    private pastDom: Node;
 
     constructor (template: ComponentInterface) {
         super({...{name: "app"}, ...componentDefaults, ...template});
@@ -20,9 +22,10 @@ export class Aquatic extends Component {
     public mount (id: string = this.pastMountLocation) {
         console.log("Display: ", this.turnComponentIntoVNode());
         const leDom = this.turnComponentIntoVNode();
-        for (const element of leDom) {
-            document.getElementById(id).append(element.displayDOM);
-        }
+        const newEle = document.createElement("div");
+        leDom.map(l => newEle.appendChild(l.displayDOM));
+        updateDOM(document.getElementById(id), newEle, this.pastDom);
+        this.pastDom = document.getElementById(id).childNodes[0];
         this.mountLocation = this;
         for (const component of this.components) {
             component.setMountLocation = this;
