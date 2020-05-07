@@ -8,7 +8,13 @@ const comp = Aquatic.component({
     template: html,
     style: [css],
     propArgs: {
-        bruh: Number
+        bruh: Object
+    },
+    methods: {
+        deleteVal () {
+            console.log("deleting");
+            this.$emit("deleteval", this.bruh.id);
+        }
     }
 });
 

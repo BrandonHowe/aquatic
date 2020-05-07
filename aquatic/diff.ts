@@ -61,22 +61,16 @@ const changed = (node1: Node, node2: Node) => {
 };
 
 const updateDOM = (parent: Node, newNode: Node, oldNode: Node, index = 0) => {
-    console.log("Received", parent, newNode, oldNode);
     if (!newNode) {
-        console.log("Removing", parent);
         parent.removeChild(parent.childNodes[index]);
     } else if (!oldNode) {
-        console.log("Appending");
         parent.appendChild(newNode);
     } else if (changed(newNode, oldNode)) {
-        console.log("It changed!");
         parent.replaceChild(newNode, parent.childNodes[index]);
     } else {
-        console.log("they are the same")
         if (newNode.nodeType === 1 && oldNode.nodeType === 1 && newNode instanceof HTMLElement && oldNode instanceof HTMLElement) {
             const newLength = newNode.children.length;
             const oldLength = oldNode.children.length;
-            console.log("Children", newNode.childNodes, oldNode.children);
             for (let i = 0; i < newLength || i < oldLength; i++) {
                 updateDOM(parent.childNodes[index], newNode.children[i], oldNode.children[i], i);
             }

@@ -1,7 +1,6 @@
 import {
-    elementSupportsAttribute, filterMustache, hasAFor, isElement,
-    mustacheRegex, namedNodeMapToArr, objToAttrs,
-    objToCSS, removeConstantsFromAttrs,
+    elementSupportsAttribute, filterMustache, hasAFor, isElement, methodToAttribute,
+    mustacheRegex, namedNodeMapToArr, objToAttrs, removeConstantsFromAttrs,
 } from "./helpers";
 import { Aquatic } from "./index";
 import { VirtualDOMNode, VirtualDOMTextNode } from "./vdom";
@@ -12,6 +11,7 @@ interface ComponentInterface {
     style?: string[],
     data?: Record<string, any>,
     methods?: Record<string, Function>,
+    listeners?: Record<string, Function>,
     propArgs?: Record<string, Function>,
     components?: Record<string, { new (props?: Attribute[]): Component }>
 }
@@ -22,6 +22,7 @@ const componentDefaults: ComponentInterface = {
     style: [],
     data: {},
     methods: {},
+    listeners: {},
     propArgs: {},
     components: {},
 };
@@ -30,14 +31,13 @@ type AttributeType = "default" | "evaluated" | "listener";
 
 interface Attribute {
     name: string,
-    value: string
+    value: any
 }
 
 class Component {
     protected components: Component[] = [];
     public style: Record<string, any> = {};
     public attributes: Record<string, string> = {};
-    public forObj: Record<any, any> | Array<any>;
     protected mountLocation: Aquatic;
 
     public set setMountLocation (val: Aquatic) {
@@ -48,7 +48,8 @@ class Component {
     }
 
     private $emit (name: string, message: any) {
-        const event = new CustomEvent(name, {detail: message});
+        console.log(`emitting ${message} as ${name}`);
+        const event = new CustomEvent(name, {detail: message, bubbles: true});
         document.dispatchEvent(event);
     }
 
@@ -89,7 +90,7 @@ class Component {
                             }
                             return true;
                         },
-                    })
+                    }),
                 });
             } else {
                 Object.defineProperty(this, i, {
@@ -129,7 +130,9 @@ class Component {
         for (let attribute of attributes) {
             const attrType: AttributeType = attribute.name.charAt(0) === "@" ? "listener" : "default";
             if (attrType === "listener") {
+                console.log(`Listener ${attribute.name}|${attribute.value}`, this);
                 listeners[attribute.name.slice(1)] = new Function(`return ${attribute.value}`).bind(this)();
+                console.log(`Le listener: ${attribute.name.slice(1)}|${attribute.value}`, listeners[attribute.name.slice(1)])
                 attributes.splice(attributes.indexOf(attribute));
             }
         }
@@ -145,6 +148,7 @@ class Component {
     }
 
     public elementToComponent (node: Node, props: Attribute[] = []): (VirtualDOMNode | VirtualDOMTextNode)[] {
+        console.log("Props", props);
         const isAFor = hasAFor(node, props);
         const forArr: string[] = (() => {
             if (hasAFor(node, props)) {
@@ -187,7 +191,10 @@ class Component {
             if (isElement(node)) {
                 const name = node.tagName;
                 const attributes: Attribute[] = this.evaluateAttributes([...namedNodeMapToArr(node.attributes), ...newProps]);
-                const listeners: Record<string, Function> = {...this.evaluateListeners(attributes)};
+                const methods: Attribute[] = Object.entries(this.template.methods).map(l => methodToAttribute(...l));
+                console.log("Methods", methods);
+                const listeners: Record<string, Function> = this.evaluateListeners([...attributes, ...methods]);
+                console.log("Listeners", listeners);
                 for (const attribute of attributes) {
                     if (!elementSupportsAttribute(name, attribute.name) && Object.keys(this.template.propArgs).indexOf(attribute.name) === -1 && removeConstantsFromAttrs([attribute]).length !== 0) {
                         console.error(`[Aqua warn]: Component ${name.toLowerCase()} does not have prop ${attribute.name}, but it was passed in anyways.`)
@@ -199,7 +206,7 @@ class Component {
                     const child = children[i];
                     if (typeof children[i] !== "function") {
                         if (child instanceof Element && this.template.components.hasOwnProperty(child.tagName.toLowerCase())) {
-                            const newComp = new this.template.components[child.tagName.toLowerCase()](removeConstantsFromAttrs([...attributes, ...objToAttrs({...this.template.data, ...(isAFor ? {forIter: currentFor} : {})})]));
+                            const newComp = new this.template.components[child.tagName.toLowerCase()](removeConstantsFromAttrs([...attributes, ...objToAttrs(this.template.methods), ...objToAttrs({...this.template.data, ...(isAFor ? {forIter: currentFor} : {})})]));
                             newChildren.push(...newComp.turnComponentIntoVNode(child.attributes));
                         } else {
                             newChildren.push(...this.elementToComponent(children[i], removeConstantsFromAttrs(attributes)));

@@ -1,4 +1,5 @@
 import { Component } from "./component";
+import { elementSupportsAttribute } from "./helpers";
 
 class VirtualDOMTextNode {
     constructor (public template: string) {
@@ -12,26 +13,26 @@ class VirtualDOMTextNode {
     }
 }
 
-type AttributeType = "default" | "listener";
-
 class VirtualDOMNode {
     constructor (
         public tagName: string,
         public attributes: Record<string, any>[],
-        public listeners: Record<string, any>,
+        public listeners: Record<string, Function>,
         public children: (VirtualDOMNode | VirtualDOMTextNode)[],
-        public component: Component,
+        public component: Component
     ) {}
 
     get displayDOM (): Element {
         const myElement = document.createElement(this.tagName);
-        for (const attribute of this.attributes) {
-            myElement.setAttribute(attribute.name, attribute.value);
-        }
         for (const i in this.listeners) {
+            console.log("Listener! ", i, this.listeners[i]);
             if (i && this.listeners[i]) {
-                console.log("Setting listener", myElement, i, this.listeners[i]);
-                myElement.addEventListener(i, this.listeners[i].bind(this.component));
+                if (i === "click") {
+                    myElement.addEventListener(i, this.listeners[i].bind(this.component));
+                } else {
+                    console.log(`Setting global listener: ${i}`, this.component, myElement, this.listeners[i]);
+                    document.addEventListener(i, this.listeners[i].bind(this.component));
+                }
             }
         }
         this.children.map(l => {

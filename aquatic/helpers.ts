@@ -83,4 +83,6 @@ const hasAFor = (node: Node, props: Attribute[]): node is Element => {
     return (isElement(node) ? node.hasAttribute("a-for") : false) || props.findIndex(l => l.name === "a-for") > -1
 };
 
-export { mustacheRegex, removeConstantsFromAttrs, objToCSS, elementSupportsAttribute, filterMustache, collapseNodeStyles, isElement, namedNodeMapToArr, hasAFor, objToAttrs };
+const methodToAttribute = (name: string, method: Function): Attribute => ({name, value: method.toString()});
+
+export { mustacheRegex, removeConstantsFromAttrs, objToCSS, elementSupportsAttribute, filterMustache, collapseNodeStyles, isElement, namedNodeMapToArr, hasAFor, objToAttrs, methodToAttribute };

@@ -12,16 +12,26 @@ const aq = new Aquatic({
     style: [css],
     data: {
         myVar: "2",
-        vars: [22, 24]
+        nextid: 1,
+        vars: [{val: 22, id: 0}]
     },
     methods: {
         addTodoItem () {
-            console.log("WEW WOOW WOWOWOWOWOWO")
-            this.vars.push(this.myVar);
+            this.nextid++;
+            this.vars.push({val: this.myVar, id: this.nextid++});
+        },
+        deleteTodoItem (e) {
+            console.log("finna delete", this);
+            this.vars.splice(this.vars.findIndex(l => l.id === e.target.value));
         },
         updateInput (e) {
             console.log(e.target.value);
             this.myVar = e.target.value;
+        }
+    },
+    listeners: {
+        deleteVal (e) {
+            this.deleteTodoItem(e.target.value);
         }
     },
     components: {
